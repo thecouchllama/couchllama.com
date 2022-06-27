@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://gohugo.io/" version="0.101.0">Hugo</generator><title>The Couch Llama</title><subtitle>Tech Blog</subtitle><link href="http://couchllama.com/" rel="alternate" type="text/html" title="HTML"/><link href="http://couchllama.com/feed.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2022-06-27T23:52:42+00:00</updated><author><name>The Couch Llama</name><email>llama@couchllama.com</email></author><id>http://couchllama.com/</id><entry><title>Use PTR record to set Ubuntu Hostname on autoinstall</title><link href="http://couchllama.com/posts/ubuntuPTR/" rel="alternate" type="text/html" hreflang="en"/><id>http://couchllama.com/posts/ubuntuPTR/</id><author><name>The Couch Llama</name></author><published>2021-06-26T00:00:00+00:00</published><updated>2021-06-26T00:00:00+00:00</updated><content type="html">
+&lt;p>I&amp;rsquo;ve been working on redoing my homelab setup. I’m moving from running a
+cluster of bare metal Ubuntu NUCs to running Ubuntu VMs on top of proxmox. Part
+of this setup is using my old pxeboot setup that installs Ubuntu that way. One
+of the issues I ran across was getting the hostname to be set from DNS. It
+turns out that in order for this to work correctly you need to edit the
+hostname variable in /autoinstall.yaml using early-commands. I’m doing this by
+using nslookup to pull my hostname from a PTR record and use it to update the
+autoinstall.yaml with sed:&lt;/p>
+&lt;pre>&lt;code>sed -i &amp;quot;s+ubuntu-server+$(nslookup $(hostname -I | awk '{print $1}') | awk -F'[ .]' 'NR==1{print $8}')+&amp;quot; /autoinstall.yaml
+&lt;/code>&lt;/pre>
+&lt;p>My full autoinstall yml looks like:&lt;/p>
+&lt;pre>&lt;code>#cloud-config
+autoinstall:
+version: 1
+identity:
+hostname: ubuntu-server
+username: ansible
+password: [HASH]
+storage:
+layout:
+name: direct
+packages:
+- qemu-guest-agent
+update: yes
+ssh:
+install-server: true
+authorized-keys:
+- ssh-ed25519 [PUBLIC KEY]
+early-commands:
+- sed -i &amp;quot;s+ubuntu-server+$(nslookup $(hostname -I | awk '{print $1}') | awk -F'[ .]' 'NR==1{print $8}')+&amp;quot; /autoinstall.yaml
+late-commands:
+- curtin in-target --target=/target -- systemctl enable qemu-guest-agent
+- curtin in-target --target=/target -- apt update
+- curtin in-target --target=/target -- apt upgrade -y
+&lt;/code>&lt;/pre></content><category scheme="http://couchllama.com/authors/couchllama" term="couchllama" label="couchllama"/><category scheme="http://couchllama.com/tags/ubuntu" term="ubuntu" label="ubuntu"/></entry><entry><title>Blink Shell</title><link href="http://couchllama.com/posts/blinkshell/" rel="alternate" type="text/html" hreflang="en"/><id>http://couchllama.com/posts/blinkshell/</id><author><name>The Couch Llama</name></author><published>2021-06-16T00:00:00+00:00</published><updated>2021-06-16T00:00:00+00:00</updated><content type="html">
+&lt;p>Now that we have a server running mosh we&amp;rsquo;ll want to connect to it. I use the
+blink shell app. Here&amp;rsquo;s how I configure blink shell. First thing to do is to
+generate a new ssh key. By default it sets up a rsa key. These are depreciated
+in new versions of SSH. Instead we want to generate a ed25519 key named
+id_ed25519:&lt;/p>
+&lt;p>&lt;img
+src="newkey.jpg"
+alt="New Key"
+/>&lt;/p>
+&lt;p>After this you want to setup a host. You want to minimally fill out the host,
+hostname, and user fields. You can also select a ssh key if you don&amp;rsquo;t want to
+use the default one. I also add the following line to the Startup Command:&lt;/p>
+&lt;pre>&lt;code>&amp;quot;zsh -c 'export BLINKSH=true; tmux new-session -ADs main'&amp;quot;
+&lt;/code>&lt;/pre>
+&lt;p>This sets the BLINKSH variable to true and starts tmux. Tmux will attach to the
+session name main if it exists, otherwise it will create it. I create the
+BLINKSH variable so that I can check for it in my zshrc scripts&lt;/p>
+&lt;p>&lt;img
+src="newhost1.jpg"
+alt="New Host"
+/>
+&lt;img
+src="newhost2.jpg"
+alt="New Host"
+/>&lt;/p>
+&lt;p>Under Appearance I import a custom theme and font. I like using the cobalt2. It
+can be imported from:
+&lt;code>https://raw.githubusercontent.com/thecouchllama/blinksh-cobalt2/main/cobalt2.js&lt;/code>&lt;/p>
+&lt;p>&lt;img
+src="newtheme.jpg"
+alt="New Theme"
+/>&lt;/p>
+&lt;p>The blink shell github also contains extra fonts you can import if one of those
+suits you more. I use DejaVu Sans Mono NF.
+&lt;code>https://github.com/blinksh/fonts/blob/master/DejaVu%20Sans%20Mono%20Nerd%20Font.css&lt;/code>&lt;/p>
+&lt;p>&lt;img
+src="newfont.jpg"
+alt="New Font"
+/>&lt;/p>
+&lt;p>The Keyboard can also be customized. I change the caps lock to be escape on
+release. I have the caps lock be an extra ctrl key via the hardware keyboard
+configuration. This allows me to use it as a modifier key or tap it when I want
+to send esc. It&amp;rsquo;s also a good idea to change the option key to be an esc
+modifier. This allows it to act as an alt key.&lt;/p>
+&lt;p>&lt;img
+src="capslock.jpg"
+alt="CapsLock"
+/>
+&lt;img
+src="options.jpg"
+alt="Option"
+/>&lt;/p>
+&lt;p>Speaking of the hardware keyboard, I like to set my caps lock and globe key to
+control. I&amp;rsquo;m used to using laptops where the ctrl is is on the outside of the
+function key, so I tend to hit the globe instead of the ctrl if I&amp;rsquo;m going for
+it there. I&amp;rsquo;m also used to having caps lock act as control because it&amp;rsquo;s easier
+to reach it with certain key combinations, like ctrl-a.&lt;/p>
+&lt;p>&lt;img
+src="modifierkeys.jpg"
+alt="Modifier Keys"
+/>&lt;/p>
+&lt;p>Blink shell also has a Tips &amp;amp; Tricks page, which contains a number of useful
+configuration pieces. One of them is setting up copy/paste via OSC 52. To set
+this up in tmux, add the following to your tmux.conf:&lt;/p>
+&lt;pre>&lt;code>set -s set-clipboard on
+set -ag terminal-overrides &amp;quot;vte*:XT:Ms=\\E]52;c;%p2%s\\7,xterm*:XT:Ms=\\E]52;c;%p2%s\\7&amp;quot;
+&lt;/code>&lt;/pre>
+&lt;p>Note: I&amp;rsquo;ve found that these options tend to work better after other
+terminal-overrides, such as enabling true color.&lt;/p>
+&lt;p>For vim/neovim you can install the
+&lt;a
+class="gblog-markdown__link"
+href="https://github.com/ojroques/vim-oscyank"
+>ojroques/vim-oscyank&lt;/a> plugin and set
+a key to run &lt;code>:OSCYank &amp;lt;CR&amp;gt;`. For example, I have `&amp;lt;Leader&amp;gt;y&lt;/code> to perform
+this. It&amp;rsquo;s also possible to always sync the vim clipboard to the main
+clipboard, however I find that annoying since I don&amp;rsquo;t paste out of vim that
+often.&lt;/p></content><category scheme="http://couchllama.com/authors/couchllama" term="couchllama" label="couchllama"/><category scheme="http://couchllama.com/tags/iPad" term="iPad" label="iPad"/></entry><entry><title>Weekly CLI Tool - bat</title><link href="http://couchllama.com/posts/weeklycli/bat/" rel="alternate" type="text/html" hreflang="en"/><id>http://couchllama.com/posts/weeklycli/bat/</id><author><name>The Couch Llama</name></author><published>2021-06-16T00:00:00+00:00</published><updated>2021-06-16T00:00:00+00:00</updated><content type="html">
+&lt;p>&lt;img
+src="batexample.jpg"
+alt="bat example"
+/>&lt;/p>
+&lt;p>bat is a replacement for cat that provides syntax highlighting and line
+numbers. It also includes the ability to show git status, such as lines that
+have been added or removed vs what&amp;rsquo;s been committed. See &lt;a
+class="gblog-markdown__link"
+href="https://github.com/sharkdp/bat"
+>bat&amp;rsquo;s github
+page&lt;/a> for more information. I suggest
+installing the latest release from their github releases page if you&amp;rsquo;re using
+Ubuntu or another distro that doesn&amp;rsquo;t do rolling releases for packages.&lt;/p>
+&lt;p>bat supports sublime text themes. I use the cobalt2 theme. To install this
+theme you can clone wes bos&amp;rsquo; cobalt2 repo to the bat theme directory and then
+rebuild bat&amp;rsquo;s cache:&lt;/p>
+&lt;pre>&lt;code>git clone https://github.com/wesbos/cobalt2 $(bat --config-dir)/themes/cobalt2
+bat cache --build
+export BAT_THEME=”cobalt2”
+&lt;/code>&lt;/pre>
+&lt;p>I put export &lt;code>BAT_THEME=&amp;quot;cobalt2&amp;quot;&lt;/code> into my zshrc so that bat always defaults to
+use the cobalt2 theme. I also set the following aliases:&lt;/p>
+&lt;pre>&lt;code>alias cat='bat -p --pager=never'
+alias catl='bat --pager=never'
+alias catp='bat'
+&lt;/code>&lt;/pre>
+&lt;p>This disables the pager and line number/gutter for cat. &lt;code>catl&lt;/code> keeps the line
+numbers/gutter and &lt;code>catp&lt;/code> also keeps the pager.&lt;/p>
+&lt;p>There is also the &lt;a
+class="gblog-markdown__link"
+href="https://github.com/eth-p/bat-extras"
+>bat-extras&lt;/a> package
+that can be extracted to &lt;code>/usr/local&lt;/code>. This provides applications that can be
+used as alternatives to ripgrep, man, and watch. These alternatives include the
+syntax highlighting that bat does.&lt;/p></content><category scheme="http://couchllama.com/authors/couchllama" term="couchllama" label="couchllama"/><category scheme="http://couchllama.com/tags/CLI-Tools" term="CLI-Tools" label="CLI Tools"/></entry><entry><title>Building Mosh from Master</title><link href="http://couchllama.com/posts/buildingmosh/" rel="alternate" type="text/html" hreflang="en"/><id>http://couchllama.com/posts/buildingmosh/</id><author><name>The Couch Llama</name></author><published>2021-06-11T00:00:00+00:00</published><updated>2021-06-11T00:00:00+00:00</updated><content type="html">
+&lt;p>The first thing you want to do when setting up a server to use with blink shell
+is to install mosh. I suggest building mosh from master instead of using the
+version of mosh bundled with your OS. The latest Mosh release is from July 22, 2017. In fact, as of this post the last time the mosh master branch was updated
+was on May 17, 2020. While mosh appears to be a dead project, it’s still
+the best option we have for managing a remote shell on the iPad. This is
+because unlike ssh, mosh connections can be resumed when disconnected.
+This allows us to be able to switch out of blink shell without worrying
+about our SSH session breaking.&lt;/p>
+&lt;p>I’ve included scripts for building and installing the master branch of mosh on
+Ubuntu, openSUSE, and CentOS 7. If you need a script to install it on another
+OS let me know and I can look at creating a guide/script.&lt;/p>
+&lt;p>The scripts are located &lt;a
+class="gblog-markdown__link"
+href="https://github.com/thecouchllama/mosh-build-scripts"
+>here&lt;/a>.&lt;/p>
+&lt;p>If you’re using MacOS then I recommend installing mosh using
+&lt;a
+class="gblog-markdown__link"
+href="https://brew.sh"
+>homebrew&lt;/a> by running&lt;/p>
+&lt;pre>&lt;code>brew install --HEAD mosh
+&lt;/code>&lt;/pre>
+&lt;p>For Arch Linux, you should install
+&lt;a
+class="gblog-markdown__link"
+href="https://aur.archlinux.org/packages/mosh-git"
+>mosh-git&lt;/a> from AUR.&lt;/p>
+&lt;p>After installing mosh you want to make sure that you allow connections from the
+appropriate port. Mosh needs to be able to ssh into the server. It also uses
+UDP ports 60000-61000 by default. you can also use &lt;code>ssh -p [PORT #] [SERVER]&lt;/code> to
+specify the UDP port to use. (For a different ssh port you’d use &lt;code>mosh -ssh=&amp;quot;ssh -p [SSH PORT]&amp;quot; [SERVER]&lt;/code>.&lt;/p>
+&lt;p>Generally mosh is much nicer to use than ssh. The only real downside that I&amp;rsquo;ve
+come across is that you can’t easily forward your ssh-agent session to the
+server. There’s an application called Guardian Agent that can get around this,
+however I haven’t tried it yet. If you have any experience with using that then
+please let us know in the comments how it is.&lt;/p></content><category scheme="http://couchllama.com/authors/couchllama" term="couchllama" label="couchllama"/><category scheme="http://couchllama.com/tags/CLI-Tools" term="CLI-Tools" label="CLI Tools"/><category scheme="http://couchllama.com/tags/iPad" term="iPad" label="iPad"/></entry><entry><title>Weekly CLI Tool - ripgrep</title><link href="http://couchllama.com/posts/weeklycli/ripgrep/" rel="alternate" type="text/html" hreflang="en"/><id>http://couchllama.com/posts/weeklycli/ripgrep/</id><author><name>The Couch Llama</name></author><published>2021-06-11T00:00:00+00:00</published><updated>2021-06-11T00:00:00+00:00</updated><content type="html">
+&lt;p>There’s a number of grep alternatives, including &lt;a
+class="gblog-markdown__link"
+href="https://github.com/ggreer/the_silver_searcher"
+>The Silver Searcher
+(ag)&lt;/a> and
+&lt;a
+class="gblog-markdown__link"
+href="https://github.com/beyondgrep/ack3"
+>ack&lt;/a>. The one I use most frequently is
+&lt;a
+class="gblog-markdown__link"
+href="https://github.com/BurntSushi/ripgrep"
+>ripgrep&lt;/a>. Ripgrep is one of the fastest
+text search tools and is a great alternative to grep when you’re dealing with
+git repos. It’s available from most modern distro’s package managers. By
+default ripgrep will determine if you’re in a git repo and ignore files in
+.gitignore. It also ignores binary files and does a recursive search into all
+subdirectories.&lt;/p>
+&lt;p>Here’s some examples for using ripgrep:&lt;/p>
+&lt;p>Ignore case while searching for a string:&lt;/p>
+&lt;pre>&lt;code>rg -i [STRING]
+&lt;/code>&lt;/pre>
+&lt;p>Ignore case if the string you’re searching for is all lowercase:&lt;/p>
+&lt;pre>&lt;code>rg -S [STRING]
+&lt;/code>&lt;/pre>
+&lt;p>Search files in the directory, including files in .gitignore:&lt;/p>
+&lt;pre>&lt;code>rg -u [STRING]
+&lt;/code>&lt;/pre>
+&lt;p>Only search for a string in files ending in .md:&lt;/p>
+&lt;pre>&lt;code>rg -g '\*.md' [STRING]
+&lt;/code>&lt;/pre>
+&lt;p>Another way to search for markdown files is to use types. &lt;code>rg --type-list&lt;/code> will
+show you all the types available and what globs they search for. For example,
+for markdown it’ll search files matching these globs: *.markdown, *.md,
+*.mdown, and *.mkdn.&lt;/p>
+&lt;pre>&lt;code>rg -t md [STRING]
+&lt;/code>&lt;/pre>
+&lt;p>You can also do the opposite by using a capital T instead. This will search for
+all files except ones considered markdown:&lt;/p>
+&lt;pre>&lt;code>rg -T md [STRING]
+&lt;/code>&lt;/pre>
+&lt;p>If the type you want isn&amp;rsquo;t listed then you can crate your own by adding using a
+configuration file.&lt;/p>
+&lt;p>To use a config file you need to set the &lt;code>RIPGREP_CONFIG_PATH&lt;/code> variable to point
+to the ripgrep config file (&lt;code>export RIPGREP_CONFIG_PATH=$HOME/.config/.ripgreprc&lt;/code>).
+Here’s an example where the type foo matches the file foobar, files ending in
+.foo, and .bar:&lt;/p>
+&lt;pre>&lt;code>--type-add foo:foobar
+--type-add foo:\*.{foo,bar}
+&lt;/code>&lt;/pre>
+&lt;p>For a more through walkthrough of the things you can use ripgrep for see the
+&lt;a
+class="gblog-markdown__link"
+href="https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+>ripgrep user guide&lt;/a>.&lt;/p></content><category scheme="http://couchllama.com/authors/couchllama" term="couchllama" label="couchllama"/><category scheme="http://couchllama.com/tags/CLI-Tools" term="CLI-Tools" label="CLI Tools"/></entry></feed>

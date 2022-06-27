@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://gohugo.io/" version="0.101.0">Hugo</generator><title>CLI Tools on The Couch Llama</title><subtitle>Tech Blog</subtitle><link href="http://couchllama.com/tags/CLI-Tools/" rel="alternate" type="text/html" title="HTML"/><link href="http://couchllama.com/tags/CLI-Tools/feed.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2022-06-27T23:52:42+00:00</updated><author><name>The Couch Llama</name><email>llama@couchllama.com</email></author><id>http://couchllama.com/tags/CLI-Tools/</id><entry><title>Weekly CLI Tool - bat</title><link href="http://couchllama.com/posts/weeklycli/bat/" rel="alternate" type="text/html" hreflang="en"/><id>http://couchllama.com/posts/weeklycli/bat/</id><author><name>The Couch Llama</name></author><published>2021-06-16T00:00:00+00:00</published><updated>2021-06-16T00:00:00+00:00</updated><content type="html">
+&lt;p>&lt;img
+src="batexample.jpg"
+alt="bat example"
+/>&lt;/p>
+&lt;p>bat is a replacement for cat that provides syntax highlighting and line
+numbers. It also includes the ability to show git status, such as lines that
+have been added or removed vs what&amp;rsquo;s been committed. See &lt;a
+class="gblog-markdown__link"
+href="https://github.com/sharkdp/bat"
+>bat&amp;rsquo;s github
+page&lt;/a> for more information. I suggest
+installing the latest release from their github releases page if you&amp;rsquo;re using
+Ubuntu or another distro that doesn&amp;rsquo;t do rolling releases for packages.&lt;/p>
+&lt;p>bat supports sublime text themes. I use the cobalt2 theme. To install this
+theme you can clone wes bos&amp;rsquo; cobalt2 repo to the bat theme directory and then
+rebuild bat&amp;rsquo;s cache:&lt;/p>
+&lt;pre>&lt;code>git clone https://github.com/wesbos/cobalt2 $(bat --config-dir)/themes/cobalt2
+bat cache --build
+export BAT_THEME=”cobalt2”
+&lt;/code>&lt;/pre>
+&lt;p>I put export &lt;code>BAT_THEME=&amp;quot;cobalt2&amp;quot;&lt;/code> into my zshrc so that bat always defaults to
+use the cobalt2 theme. I also set the following aliases:&lt;/p>
+&lt;pre>&lt;code>alias cat='bat -p --pager=never'
+alias catl='bat --pager=never'
+alias catp='bat'
+&lt;/code>&lt;/pre>
+&lt;p>This disables the pager and line number/gutter for cat. &lt;code>catl&lt;/code> keeps the line
+numbers/gutter and &lt;code>catp&lt;/code> also keeps the pager.&lt;/p>
+&lt;p>There is also the &lt;a
+class="gblog-markdown__link"
+href="https://github.com/eth-p/bat-extras"
+>bat-extras&lt;/a> package
+that can be extracted to &lt;code>/usr/local&lt;/code>. This provides applications that can be
+used as alternatives to ripgrep, man, and watch. These alternatives include the
+syntax highlighting that bat does.&lt;/p></content><category scheme="http://couchllama.com/authors/couchllama" term="couchllama" label="couchllama"/><category scheme="http://couchllama.com/tags/CLI-Tools" term="CLI-Tools" label="CLI Tools"/></entry><entry><title>Building Mosh from Master</title><link href="http://couchllama.com/posts/buildingmosh/" rel="alternate" type="text/html" hreflang="en"/><id>http://couchllama.com/posts/buildingmosh/</id><author><name>The Couch Llama</name></author><published>2021-06-11T00:00:00+00:00</published><updated>2021-06-11T00:00:00+00:00</updated><content type="html">
+&lt;p>The first thing you want to do when setting up a server to use with blink shell
+is to install mosh. I suggest building mosh from master instead of using the
+version of mosh bundled with your OS. The latest Mosh release is from July 22, 2017. In fact, as of this post the last time the mosh master branch was updated
+was on May 17, 2020. While mosh appears to be a dead project, it’s still
+the best option we have for managing a remote shell on the iPad. This is
+because unlike ssh, mosh connections can be resumed when disconnected.
+This allows us to be able to switch out of blink shell without worrying
+about our SSH session breaking.&lt;/p>
+&lt;p>I’ve included scripts for building and installing the master branch of mosh on
+Ubuntu, openSUSE, and CentOS 7. If you need a script to install it on another
+OS let me know and I can look at creating a guide/script.&lt;/p>
+&lt;p>The scripts are located &lt;a
+class="gblog-markdown__link"
+href="https://github.com/thecouchllama/mosh-build-scripts"
+>here&lt;/a>.&lt;/p>
+&lt;p>If you’re using MacOS then I recommend installing mosh using
+&lt;a
+class="gblog-markdown__link"
+href="https://brew.sh"
+>homebrew&lt;/a> by running&lt;/p>
+&lt;pre>&lt;code>brew install --HEAD mosh
+&lt;/code>&lt;/pre>
+&lt;p>For Arch Linux, you should install
+&lt;a
+class="gblog-markdown__link"
+href="https://aur.archlinux.org/packages/mosh-git"
+>mosh-git&lt;/a> from AUR.&lt;/p>
+&lt;p>After installing mosh you want to make sure that you allow connections from the
+appropriate port. Mosh needs to be able to ssh into the server. It also uses
+UDP ports 60000-61000 by default. you can also use &lt;code>ssh -p [PORT #] [SERVER]&lt;/code> to
+specify the UDP port to use. (For a different ssh port you’d use &lt;code>mosh -ssh=&amp;quot;ssh -p [SSH PORT]&amp;quot; [SERVER]&lt;/code>.&lt;/p>
+&lt;p>Generally mosh is much nicer to use than ssh. The only real downside that I&amp;rsquo;ve
+come across is that you can’t easily forward your ssh-agent session to the
+server. There’s an application called Guardian Agent that can get around this,
+however I haven’t tried it yet. If you have any experience with using that then
+please let us know in the comments how it is.&lt;/p></content><category scheme="http://couchllama.com/authors/couchllama" term="couchllama" label="couchllama"/><category scheme="http://couchllama.com/tags/CLI-Tools" term="CLI-Tools" label="CLI Tools"/><category scheme="http://couchllama.com/tags/iPad" term="iPad" label="iPad"/></entry><entry><title>Weekly CLI Tool - ripgrep</title><link href="http://couchllama.com/posts/weeklycli/ripgrep/" rel="alternate" type="text/html" hreflang="en"/><id>http://couchllama.com/posts/weeklycli/ripgrep/</id><author><name>The Couch Llama</name></author><published>2021-06-11T00:00:00+00:00</published><updated>2021-06-11T00:00:00+00:00</updated><content type="html">
+&lt;p>There’s a number of grep alternatives, including &lt;a
+class="gblog-markdown__link"
+href="https://github.com/ggreer/the_silver_searcher"
+>The Silver Searcher
+(ag)&lt;/a> and
+&lt;a
+class="gblog-markdown__link"
+href="https://github.com/beyondgrep/ack3"
+>ack&lt;/a>. The one I use most frequently is
+&lt;a
+class="gblog-markdown__link"
+href="https://github.com/BurntSushi/ripgrep"
+>ripgrep&lt;/a>. Ripgrep is one of the fastest
+text search tools and is a great alternative to grep when you’re dealing with
+git repos. It’s available from most modern distro’s package managers. By
+default ripgrep will determine if you’re in a git repo and ignore files in
+.gitignore. It also ignores binary files and does a recursive search into all
+subdirectories.&lt;/p>
+&lt;p>Here’s some examples for using ripgrep:&lt;/p>
+&lt;p>Ignore case while searching for a string:&lt;/p>
+&lt;pre>&lt;code>rg -i [STRING]
+&lt;/code>&lt;/pre>
+&lt;p>Ignore case if the string you’re searching for is all lowercase:&lt;/p>
+&lt;pre>&lt;code>rg -S [STRING]
+&lt;/code>&lt;/pre>
+&lt;p>Search files in the directory, including files in .gitignore:&lt;/p>
+&lt;pre>&lt;code>rg -u [STRING]
+&lt;/code>&lt;/pre>
+&lt;p>Only search for a string in files ending in .md:&lt;/p>
+&lt;pre>&lt;code>rg -g '\*.md' [STRING]
+&lt;/code>&lt;/pre>
+&lt;p>Another way to search for markdown files is to use types. &lt;code>rg --type-list&lt;/code> will
+show you all the types available and what globs they search for. For example,
+for markdown it’ll search files matching these globs: *.markdown, *.md,
+*.mdown, and *.mkdn.&lt;/p>
+&lt;pre>&lt;code>rg -t md [STRING]
+&lt;/code>&lt;/pre>
+&lt;p>You can also do the opposite by using a capital T instead. This will search for
+all files except ones considered markdown:&lt;/p>
+&lt;pre>&lt;code>rg -T md [STRING]
+&lt;/code>&lt;/pre>
+&lt;p>If the type you want isn&amp;rsquo;t listed then you can crate your own by adding using a
+configuration file.&lt;/p>
+&lt;p>To use a config file you need to set the &lt;code>RIPGREP_CONFIG_PATH&lt;/code> variable to point
+to the ripgrep config file (&lt;code>export RIPGREP_CONFIG_PATH=$HOME/.config/.ripgreprc&lt;/code>).
+Here’s an example where the type foo matches the file foobar, files ending in
+.foo, and .bar:&lt;/p>
+&lt;pre>&lt;code>--type-add foo:foobar
+--type-add foo:\*.{foo,bar}
+&lt;/code>&lt;/pre>
+&lt;p>For a more through walkthrough of the things you can use ripgrep for see the
+&lt;a
+class="gblog-markdown__link"
+href="https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+>ripgrep user guide&lt;/a>.&lt;/p></content><category scheme="http://couchllama.com/authors/couchllama" term="couchllama" label="couchllama"/><category scheme="http://couchllama.com/tags/CLI-Tools" term="CLI-Tools" label="CLI Tools"/></entry></feed>

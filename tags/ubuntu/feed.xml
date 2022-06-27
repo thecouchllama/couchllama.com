@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://gohugo.io/" version="0.101.0">Hugo</generator><title>Ubuntu on The Couch Llama</title><subtitle>Tech Blog</subtitle><link href="http://couchllama.com/tags/ubuntu/" rel="alternate" type="text/html" title="HTML"/><link href="http://couchllama.com/tags/ubuntu/feed.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2022-06-27T23:52:42+00:00</updated><author><name>The Couch Llama</name><email>llama@couchllama.com</email></author><id>http://couchllama.com/tags/ubuntu/</id><entry><title>Use PTR record to set Ubuntu Hostname on autoinstall</title><link href="http://couchllama.com/posts/ubuntuPTR/" rel="alternate" type="text/html" hreflang="en"/><id>http://couchllama.com/posts/ubuntuPTR/</id><author><name>The Couch Llama</name></author><published>2021-06-26T00:00:00+00:00</published><updated>2021-06-26T00:00:00+00:00</updated><content type="html">
+&lt;p>I&amp;rsquo;ve been working on redoing my homelab setup. I’m moving from running a
+cluster of bare metal Ubuntu NUCs to running Ubuntu VMs on top of proxmox. Part
+of this setup is using my old pxeboot setup that installs Ubuntu that way. One
+of the issues I ran across was getting the hostname to be set from DNS. It
+turns out that in order for this to work correctly you need to edit the
+hostname variable in /autoinstall.yaml using early-commands. I’m doing this by
+using nslookup to pull my hostname from a PTR record and use it to update the
+autoinstall.yaml with sed:&lt;/p>
+&lt;pre>&lt;code>sed -i &amp;quot;s+ubuntu-server+$(nslookup $(hostname -I | awk '{print $1}') | awk -F'[ .]' 'NR==1{print $8}')+&amp;quot; /autoinstall.yaml
+&lt;/code>&lt;/pre>
+&lt;p>My full autoinstall yml looks like:&lt;/p>
+&lt;pre>&lt;code>#cloud-config
+autoinstall:
+version: 1
+identity:
+hostname: ubuntu-server
+username: ansible
+password: [HASH]
+storage:
+layout:
+name: direct
+packages:
+- qemu-guest-agent
+update: yes
+ssh:
+install-server: true
+authorized-keys:
+- ssh-ed25519 [PUBLIC KEY]
+early-commands:
+- sed -i &amp;quot;s+ubuntu-server+$(nslookup $(hostname -I | awk '{print $1}') | awk -F'[ .]' 'NR==1{print $8}')+&amp;quot; /autoinstall.yaml
+late-commands:
+- curtin in-target --target=/target -- systemctl enable qemu-guest-agent
+- curtin in-target --target=/target -- apt update
+- curtin in-target --target=/target -- apt upgrade -y
+&lt;/code>&lt;/pre></content><category scheme="http://couchllama.com/authors/couchllama" term="couchllama" label="couchllama"/><category scheme="http://couchllama.com/tags/ubuntu" term="ubuntu" label="ubuntu"/></entry></feed>
