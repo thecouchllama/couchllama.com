@@ -1,0 +1,14 @@
+---
+header:
+  - name: CLI Tools
+    ref: "/tags/CLI-Tools"
+  - name: iPad
+    ref: "/tags/iPad"
+footer:
+  - name: About Me
+    icon: gblog_person
+    ref: "/about"
+  - name: Github Profile
+    icon: gblog_github
+    ref: "https://github.com/thecouchllama"
+    external: true

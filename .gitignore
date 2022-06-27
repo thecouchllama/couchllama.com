@@ -1,0 +1,15 @@
+# local environments
+.swp
+.env*
+/dist/
+/build/
+/node_modules/
+/lhci_reports/
+CHANGELOG.md
+.hugo_build.lock
+
+# auto-generated files
+/resources/
+
+# testing
+.lighthouseci/
